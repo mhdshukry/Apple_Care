@@ -75,7 +75,7 @@ $current_page = 'products'; // Set this based on the current page context
                         <span>Contact</span>
                     </a>
                 </li>
-                <li class="<?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>"></li>
+                <li class="<?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>">
                     <a href="./dashboard.php">
                         <i class="fa fa-user"></i>
                         <span>Dashboard</span>

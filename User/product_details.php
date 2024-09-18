@@ -156,7 +156,7 @@ $weight_result = $weight_stmt->get_result();
                         <span>Contact</span>
                     </a>
                 </li>
-                <li class="<?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>"></li>
+                <li class="<?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>">
                     <a href="./dashboard.php">
                         <i class="fa fa-user"></i>
                         <span>Dashboard</span>
