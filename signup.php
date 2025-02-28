@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($conn->query($sql) === TRUE) {
         echo "<script>
                 alert('Signup successful! Please log in.');
-                window.location.href = './index.php?login=true';
+                window.location.href = './index.html?login=true';
               </script>";
     } else {
         echo "Error: " . $sql . "<br>" . $conn->error;
