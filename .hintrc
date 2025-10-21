@@ -7,15 +7,9 @@
       "default",
       {
         "ignore": [
-          "backdrop-filter"
+          "backdrop-filter",
+          "-moz-appearance"
         ]
-      }
-    ],
-    "no-inline-styles": "off",
-    "axe/name-role-value": [
-      "default",
-      {
-        "link-name": "off"
       }
     ]
   }
