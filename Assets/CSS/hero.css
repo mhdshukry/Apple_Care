@@ -1,0 +1,224 @@
+/* Modern Hero Slider Styles (scoped to .slider) */
+
+.slider {
+  position: relative;
+  width: 100%;
+  height: clamp(360px, 52vw, 540px);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #0b0b0c;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  isolation: isolate;
+}
+
+/* Slide base */
+.slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.02);
+  transition: opacity 600ms ease, transform 900ms ease;
+}
+.slide.active {
+  opacity: 1;
+  transform: scale(1);
+  z-index: 2;
+}
+
+/* Background image */
+.slide > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* restore previous full-bleed look */
+  object-position: center;
+  transform: scale(1.06); /* subtle depth without heavy crop */
+  transition: transform 1200ms ease;
+  filter: saturate(1.05) contrast(1.02);
+}
+.slide.active > img {
+  transform: scale(1.02);
+}
+
+/* Subtle gradient overlay for readability */
+.slide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.35) 35%,
+    rgba(0, 0, 0, 0.15) 60%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  z-index: 1;
+}
+
+/* Content block */
+.slide .content {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  max-width: 720px;
+  padding: clamp(16px, 3.2vw, 28px) clamp(18px, 3.8vw, 36px);
+  display: grid;
+  gap: clamp(10px, 1.6vw, 16px);
+  top: 8%;
+}
+
+/* Eyebrow label (optional) */
+.slide .eyebrow {
+  display: inline-flex;
+  font: 700 12px/1.2 "Nunito", system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  width: -moz-fit-content; /* Firefox */
+  width: fit-content; /* modern browsers */
+  width: max-content; /* optional fallback for some engines */
+  align-self: start; /* vertical alignment in grid */
+  justify-self: start; /* prevent horizontal stretch in grid */
+  white-space: nowrap; /* keep pill on one line */
+}
+
+.slide h1 {
+  font-family: "Playwrite AR", "Nunito", system-ui, -apple-system, Segoe UI,
+    Roboto, Arial, sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 4.5vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+.slide p {
+  font-size: clamp(14px, 1.6vw, 17px);
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 56ch;
+}
+
+/* Buttons row */
+.slide .buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.slide .btn {
+  border-radius: 999px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  transition: transform 180ms ease, background 220ms ease,
+    border-color 220ms ease;
+  backdrop-filter: blur(6px);
+}
+.slide .btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.12);
+}
+.slide .btn:active {
+  transform: translateY(0);
+}
+.slide .btn-primary {
+  background: linear-gradient(135deg, #111, #000); /* already black */
+  border-color: #000;
+}
+
+/* Navigation arrows */
+.hero-nav {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.hero-nav .arrow {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(10, 10, 12, 0.54);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 180ms ease, background 200ms ease;
+}
+.hero-nav .arrow:hover {
+  background: rgba(10, 10, 12, 0.7);
+  transform: translateY(-1px);
+}
+.hero-nav .prev {
+  left: 12px;
+}
+.hero-nav .next {
+  right: 12px;
+}
+.hero-nav .arrow i {
+  pointer-events: none;
+}
+
+/* Pagination dots */
+.hero-pagination {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  translate: -50% 0;
+  display: flex;
+  gap: 8px;
+  z-index: 3;
+}
+.hero-pagination .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  transition: width 220ms ease, background 220ms ease, opacity 220ms ease;
+  opacity: 0.85;
+}
+.hero-pagination .dot.active {
+  width: 22px;
+  background: #fff;
+  opacity: 1;
+}
+
+/* Progress bar */
+/* progress bar removed per request */
+/* .hero-progress { display:none; } */
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .slide .content {
+    top: 6%;
+  }
+}
+@media (max-width: 720px) {
+  .slider {
+    border-radius: 12px;
+  }
+  .slide .content {
+    max-width: 92%;
+    top: 4%;
+  }
+  .hero-nav .arrow {
+    width: 38px;
+    height: 38px;
+  }
+}
+@media (max-width: 520px) {
+  .hero-pagination {
+    bottom: 10px;
+  }
+}
