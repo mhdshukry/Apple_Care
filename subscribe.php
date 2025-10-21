@@ -1,0 +1,33 @@
+<?php
+session_start();
+include 'config.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: Index.php');
+    exit;
+}
+
+$email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+if (!$email) {
+    $_SESSION['newsletter_error'] = 'Please enter a valid email address.';
+    header('Location: ' . ($_POST['redirect'] ?? 'Index.php'));
+    exit;
+}
+
+$conn->query("CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+$stmt = $conn->prepare('INSERT IGNORE INTO newsletter_subscribers(email) VALUES (?)');
+$stmt->bind_param('s', $email);
+if ($stmt->execute()) {
+    $_SESSION['newsletter_success'] = 'Thanks for subscribing!';
+} else {
+    $_SESSION['newsletter_error'] = 'Subscription failed. Please try again later.';
+}
+$stmt->close();
+
+header('Location: ' . ($_POST['redirect'] ?? 'Index.php'));
+exit;
