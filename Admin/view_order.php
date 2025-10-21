@@ -1,7 +1,7 @@
 <?php
-session_start();
+include 'auth.php';
 include '../config.php';
-
+ 
 // Check if the order_detail_id is set in the URL
 if (isset($_GET['id'])) {
     $order_detail_id = $_GET['id'];
@@ -100,4 +100,4 @@ if (isset($_GET['id'])) {
 } else {
     echo "Invalid request.";
 }
-?>
+
