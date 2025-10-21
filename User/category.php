@@ -16,11 +16,15 @@ $current_page = 'products';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apple Care+</title>
+    <link rel="icon" type="image/png" href="/Apple_Care/Assets/Images/apple.png">
+    <link rel="shortcut icon" type="image/png" href="/Apple_Care/Assets/Images/apple.png">
     <link rel="stylesheet" href="../Assets/CSS/home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Playwrite+AR:wght@100..400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Playwrite+AR:wght@100..400&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -43,20 +47,20 @@ $current_page = 'products';
                         <span>Products</span>
                     </a>
                 </li>
-                <li>
-                    <a href="#search-job">
+                <li class="<?php echo ($current_page == 'cart') ? 'active' : ''; ?>">
+                    <a href="./cart.php">
                         <i class="fas fa-cart-plus"></i>
                         <span>Add to Cart</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#applications">
+                    <a href="./about.php">
                         <i class="fa fa-user"></i>
                         <span>About Us</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#message">
+                    <a href="./contact-us.php">
                         <i class="fa fa-info"></i>
                         <span>Contact</span>
                     </a>
@@ -90,45 +94,75 @@ $current_page = 'products';
 
         <div class="main-content">
             <?php
-            // Define the category titles to be displayed
-            $category_titles = [
-                1 => 'iPhone Products',
-                2 => 'MacBook Products',
-                3 => 'iPad Products',
-                4 => 'Apple Watch Products',
-                5 => 'Apple TV Products',
-                6 => 'AirPods Products',
-                7 => 'Accessories Products'
-            ];
+            // Fetch categories dynamically to reflect current data
+            $catSql = "SELECT category_id, name FROM categories ORDER BY name ASC";
+            $catRes = $conn->query($catSql);
 
-            foreach ($category_titles as $category_id => $title) {
-                echo "<h1>$title</h1>";
-                echo "<div class='products-container'>";
+            if ($catRes && $catRes->num_rows > 0) {
+                while ($cat = $catRes->fetch_assoc()) {
+                    $category_id = (int) $cat['category_id'];
+                    $category_name = $cat['name'];
 
-                $sql = "SELECT p.* FROM products p
-                        JOIN product_categories pc ON p.product_id = pc.product_id
-                        WHERE pc.category_id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("i", $category_id);
-                $stmt->execute();
-                $result = $stmt->get_result();
+                    echo '<h1>' . htmlspecialchars($category_name) . '</h1>';
+                    echo "<div class='products-container'>";
 
-                if ($result === false) {
-                    echo "Error: " . $conn->error;
-                } elseif ($result->num_rows > 0) {
-                    while ($row = $result->fetch_assoc()) {
-                        echo "<div class='product'>";
-                        echo "<a href='product_details.php?id=" . $row['product_id'] . "'>";
-                        echo "<img src='../upload/" . $row['image_url'] . "' alt='" . $row['name'] . "'>";
-                        echo "<h3>" . $row['name'] . "</h3>";
-                        echo "</a>";
-                        echo "</div>";
+                    $sql = "SELECT p.product_id, p.name, p.image_url
+                            FROM products p
+                            JOIN product_categories pc ON p.product_id = pc.product_id
+                            WHERE pc.category_id = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("i", $category_id);
+                    $stmt->execute();
+
+                    // Collect products with mysqlnd fallback
+                    $products = [];
+                    if (method_exists($stmt, 'get_result')) {
+                        $res = $stmt->get_result();
+                        if ($res !== false) {
+                            while ($row = $res->fetch_assoc()) {
+                                $products[] = $row;
+                            }
+                        } else {
+                            $stmt->store_result();
+                            $stmt->bind_result($pid, $pname, $pimg);
+                            while ($stmt->fetch()) {
+                                $products[] = [
+                                    'product_id' => $pid,
+                                    'name' => $pname,
+                                    'image_url' => $pimg,
+                                ];
+                            }
+                        }
+                    } else {
+                        $stmt->store_result();
+                        $stmt->bind_result($pid, $pname, $pimg);
+                        while ($stmt->fetch()) {
+                            $products[] = [
+                                'product_id' => $pid,
+                                'name' => $pname,
+                                'image_url' => $pimg,
+                            ];
+                        }
                     }
-                } else {
-                    echo "No products found.";
-                }
+                    $stmt->close();
 
-                echo "</div>";
+                    if (!empty($products)) {
+                        foreach ($products as $p) {
+                            echo "<div class='product'>";
+                            echo "<a href='product_details.php?id=" . htmlspecialchars($p['product_id']) . "'>";
+                            echo "<img src='../upload/" . htmlspecialchars($p['image_url']) . "' alt='" . htmlspecialchars($p['name']) . "'>";
+                            echo "<h3>" . htmlspecialchars($p['name']) . "</h3>";
+                            echo "</a>";
+                            echo "</div>";
+                        }
+                    } else {
+                        echo "<p>No products found in this category.</p>";
+                    }
+
+                    echo "</div>"; // .products-container
+                }
+            } else {
+                echo '<h1>Categories</h1><p>No categories available.</p>';
             }
 
             $conn->close();
