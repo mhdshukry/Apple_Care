@@ -2,6 +2,40 @@
 session_start();
 include 'config.php';
 
+function safe_redirect_target($redirect, $fallback = 'Index.php')
+{
+    $redirect = trim((string) $redirect);
+    if ($redirect === '') {
+        return $fallback;
+    }
+
+    $redirect = str_replace(["\r", "\n"], '', $redirect);
+    if (preg_match('#^https?://#i', $redirect) || strpos($redirect, '//') === 0) {
+        return $fallback;
+    }
+
+    $allowedPrefixes = [
+        './',
+        '../',
+        'Index.php',
+        'index.php',
+        'products.php',
+        'product_details.php',
+        'User/',
+        'Admin/'
+    ];
+
+    foreach ($allowedPrefixes as $prefix) {
+        if (stripos($redirect, $prefix) === 0) {
+            return $redirect;
+        }
+    }
+
+    return $fallback;
+}
+
+$target = safe_redirect_target($_POST['redirect'] ?? 'Index.php');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: Index.php');
     exit;
@@ -10,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
 if (!$email) {
     $_SESSION['newsletter_error'] = 'Please enter a valid email address.';
-    header('Location: ' . ($_POST['redirect'] ?? 'Index.php'));
+    header('Location: ' . $target);
     exit;
 }
 
@@ -29,5 +63,5 @@ if ($stmt->execute()) {
 }
 $stmt->close();
 
-header('Location: ' . ($_POST['redirect'] ?? 'Index.php'));
+header('Location: ' . $target);
 exit;

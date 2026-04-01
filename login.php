@@ -95,10 +95,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo "Invalid role";
             }
         } else {
-            echo "Invalid password";
+            echo "Invalid email or password";
         }
     } else {
-        echo "No user found with that email";
+        echo "Invalid email or password";
     }
 
     $stmt->close();
