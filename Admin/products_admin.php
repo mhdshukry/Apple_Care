@@ -2,6 +2,11 @@
 include 'auth.php';
 include '../config.php';
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
+
 $current_page = 'products';
 ?>
 <!DOCTYPE html>
@@ -144,9 +149,15 @@ $current_page = 'products';
                                     echo "<td>" . (int) $row['stock'] . "</td>";
                                     echo "<td>${storage}</td>";
                                     echo "<td>Rs${price}</td>";
+                                    $productId = (int) $row['product_id'];
+                                    $deleteFormId = 'delete-form-' . $productId . '-' . uniqid();
                                     echo "<td class='table-actions'>";
-                                    echo "<a href='edit_product.php?id=" . (int) $row['product_id'] . "' class='btn btn-secondary'><i class='fas fa-edit'></i> Edit</a> ";
-                                    echo "<a href='delete_product.php?id=" . (int) $row['product_id'] . "' class='btn btn-danger js-del' data-name='" . $name . "'><i class='fas fa-trash'></i> Delete</a>";
+                                    echo "<a href='edit_product.php?id=" . $productId . "' class='btn btn-secondary'><i class='fas fa-edit'></i> Edit</a> ";
+                                    echo "<form id='" . $deleteFormId . "' action='delete_product.php' method='post' style='display:inline'>";
+                                    echo "<input type='hidden' name='product_id' value='" . $productId . "'>";
+                                    echo "<input type='hidden' name='csrf_token' value='" . htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8') . "'>";
+                                    echo "<button type='button' class='btn btn-danger js-del' data-name='" . $name . "' data-form-id='" . $deleteFormId . "'><i class='fas fa-trash'></i> Delete</button>";
+                                    echo "</form>";
                                     echo "</td>";
                                     echo "</tr>";
                                 }
@@ -323,28 +334,34 @@ $current_page = 'products';
             var nameEl = document.getElementById('confirmName');
             var btnCancel = document.getElementById('confirmCancelBtn');
             var btnDelete = document.getElementById('confirmDeleteBtn');
-            var pendingHref = null;
+            var pendingFormId = null;
 
-            function open(name, href) {
-                pendingHref = href;
+            function open(name, formId) {
+                pendingFormId = formId;
                 if (nameEl) nameEl.textContent = name || 'this product';
                 if (overlay) { overlay.classList.add('show'); }
             }
-            function close() { if (overlay) { overlay.classList.remove('show'); } pendingHref = null; }
+            function close() { if (overlay) { overlay.classList.remove('show'); } pendingFormId = null; }
 
             document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); } });
             if (overlay) overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
             if (btnCancel) btnCancel.addEventListener('click', close);
-            if (btnDelete) btnDelete.addEventListener('click', function () { if (pendingHref) { window.location.href = pendingHref; } });
+            if (btnDelete) btnDelete.addEventListener('click', function () {
+                if (!pendingFormId) return;
+                var form = document.getElementById(pendingFormId);
+                if (form) {
+                    form.submit();
+                }
+            });
 
             // Hook delete buttons
             document.addEventListener('click', function (e) {
-                var a = e.target.closest('a.js-del');
-                if (!a) return;
+                var btn = e.target.closest('.js-del');
+                if (!btn) return;
                 e.preventDefault();
                 e.stopPropagation();
-                var pname = a.getAttribute('data-name') || 'this product';
-                open(pname, a.getAttribute('href'));
+                var pname = btn.getAttribute('data-name') || 'this product';
+                open(pname, btn.getAttribute('data-form-id'));
             });
         })();
     </script>

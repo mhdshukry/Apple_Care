@@ -1,8 +1,21 @@
 <?php
 include 'auth.php';
 include '../config.php';
-if (isset($_GET['id'])) {
-    $product_id = intval($_GET['id']);
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: products_admin.php?error=' . urlencode('Invalid request method.'));
+    exit;
+}
+
+$postedToken = $_POST['csrf_token'] ?? '';
+$sessionToken = $_SESSION['csrf_token'] ?? '';
+if (!$postedToken || !$sessionToken || !hash_equals($sessionToken, $postedToken)) {
+    header('Location: products_admin.php?error=' . urlencode('Security validation failed. Please try again.'));
+    exit;
+}
+
+if (isset($_POST['product_id'])) {
+    $product_id = intval($_POST['product_id']);
 
     // Start a transaction
     $conn->begin_transaction();
@@ -89,6 +102,7 @@ if (isset($_GET['id'])) {
         exit();
     }
 } else {
-    echo "Invalid request.";
+    header('Location: products_admin.php?error=' . urlencode('Invalid product request.'));
+    exit;
 }
 ?>
