@@ -7,6 +7,11 @@ if (!isset($_SESSION['user_id'])) {
 }
 $user_id = (int) $_SESSION['user_id'];
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
+
 // Get customer id
 $cust = $conn->prepare('SELECT customer_id FROM customers WHERE user_id = ?');
 $cust->bind_param('i', $user_id);
@@ -183,19 +188,22 @@ $steps = ['processing' => 0, 'packed' => 1, 'shipped' => 2, 'delivered' => 3, 'c
                                         </div>
                                         <div
                                             class="node <?php echo ($activeIdx > 1) ? 'active completed' : (($activeIdx === 1) ? 'active' : ''); ?>">
-                                            <i class="fas fa-box-open"></i><span>Packed</span></div>
+                                            <i class="fas fa-box-open"></i><span>Packed</span>
+                                        </div>
                                         <div class="connector <?php echo $conn2; ?>">
                                             <div class="fill"></div>
                                         </div>
                                         <div
                                             class="node <?php echo ($activeIdx > 2) ? 'active completed' : (($activeIdx === 2) ? 'active' : ''); ?>">
-                                            <i class="fas fa-shipping-fast"></i><span>Shipped</span></div>
+                                            <i class="fas fa-shipping-fast"></i><span>Shipped</span>
+                                        </div>
                                         <div class="connector <?php echo $conn3; ?>">
                                             <div class="fill"></div>
                                         </div>
                                         <div
                                             class="node <?php echo ($activeIdx > 3) ? 'active completed' : (($activeIdx === 3) ? 'active' : ''); ?>">
-                                            <i class="fas fa-box"></i><span>Delivered</span></div>
+                                            <i class="fas fa-box"></i><span>Delivered</span>
+                                        </div>
                                         <div class="connector <?php echo $conn4; ?>">
                                             <div class="fill"></div>
                                         </div>
@@ -227,6 +235,8 @@ $steps = ['processing' => 0, 'packed' => 1, 'shipped' => 2, 'delivered' => 3, 'c
 
     <div id="toast" class="toast"></div>
     <script>
+        const csrfToken = <?php echo json_encode($csrf_token); ?>;
+
         // Animate timelines and handle cancel
         document.querySelectorAll('.timeline').forEach(tl => {
             const active = parseInt(tl.getAttribute('data-active') || '0', 10);
@@ -256,7 +266,8 @@ $steps = ['processing' => 0, 'packed' => 1, 'shipped' => 2, 'delivered' => 3, 'c
                 const id = btn.getAttribute('data-order-id');
                 if (!confirm('Cancel this order?')) return;
                 try {
-                    const res = await fetch('order_cancel.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'order_id=' + encodeURIComponent(id) });
+                    const body = 'order_id=' + encodeURIComponent(id) + '&csrf_token=' + encodeURIComponent(csrfToken);
+                    const res = await fetch('order_cancel.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
                     const data = await res.json();
                     if (data.success) { showToast('Order cancelled'); setTimeout(() => location.reload(), 800); }
                     else { showToast(data.message || 'Cancel failed', 'error'); }
@@ -270,7 +281,8 @@ $steps = ['processing' => 0, 'packed' => 1, 'shipped' => 2, 'delivered' => 3, 'c
                 const id = btn.getAttribute('data-order-id');
                 if (!confirm('Initiate return for this order?')) return;
                 try {
-                    const res = await fetch('order_return.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'order_id=' + encodeURIComponent(id) });
+                    const body = 'order_id=' + encodeURIComponent(id) + '&csrf_token=' + encodeURIComponent(csrfToken);
+                    const res = await fetch('order_return.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
                     const data = await res.json();
                     if (data.success) { showToast('Return requested'); setTimeout(() => location.reload(), 800); }
                     else { showToast(data.message || 'Return failed', 'error'); }
@@ -283,7 +295,8 @@ $steps = ['processing' => 0, 'packed' => 1, 'shipped' => 2, 'delivered' => 3, 'c
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-order-id');
                 try {
-                    const res = await fetch('order_reorder.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'order_id=' + encodeURIComponent(id) });
+                    const body = 'order_id=' + encodeURIComponent(id) + '&csrf_token=' + encodeURIComponent(csrfToken);
+                    const res = await fetch('order_reorder.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
                     const data = await res.json();
                     if (data.success) { showToast('Added to cart'); }
                     else { showToast(data.message || 'Reorder failed', 'error'); }

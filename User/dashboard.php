@@ -18,11 +18,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['customer_id'])) {
     $state = $_POST['state'] ?? '';
     $zip_code = $_POST['zip_code'] ?? '';
     $country = $_POST['country'] ?? '';
-    $sql = "UPDATE customers SET first_name=?, last_name=?, phone_number=?, address=?, city=?, state=?, zip_code=?, country=? WHERE customer_id=?";
+    $sql = "UPDATE customers SET first_name=?, last_name=?, phone_number=?, address=?, city=?, state=?, zip_code=?, country=? WHERE customer_id=? AND user_id=?";
     if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param('ssssssssi', $first_name, $last_name, $phone_number, $address, $city, $state, $zip_code, $country, $customer_id);
+        $stmt->bind_param('ssssssssii', $first_name, $last_name, $phone_number, $address, $city, $state, $zip_code, $country, $customer_id, $user_id);
         $stmt->execute();
-        $message = 'Customer data updated successfully!';
+        if ($stmt->affected_rows > 0) {
+            $message = 'Customer data updated successfully!';
+        } else {
+            $message = 'No profile changes were applied.';
+        }
     }
 }
 
